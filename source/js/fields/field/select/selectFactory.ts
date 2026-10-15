@@ -19,7 +19,7 @@ class SelectFactory {
 			"option",
 		) as NodeListOf<HTMLOptionElement>;
 
-		if (!options || options.length === 0) {
+		if (!select || !options) {
 			console.error("Select field is missing select element or options");
 			return NullFieldFactory.create(
 				field,

@@ -34,7 +34,16 @@ class GoogleMapValueLoader implements GoogleMapValueLoaderInterface {
 	}
 
 	private isNotAValidPlaceObject(value: any): boolean {
-		if (typeof value !== 'object' || !value.address || !value.latitude || !value.longitude || !value.name) {
+		if (
+			!value ||
+			typeof value !== 'object' ||
+			!value.address ||
+			value.latitude == null ||
+			value.longitude == null ||
+			!Number.isFinite(Number(value.latitude)) ||
+			!Number.isFinite(Number(value.longitude)) ||
+			!value.name
+		) {
 			return true;
 		}
 

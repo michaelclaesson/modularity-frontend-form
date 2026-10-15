@@ -100,6 +100,7 @@ class ValidatorFactory {
       $args = $this->createValidatorInterfaceRequiredArguments($moduleId);
 
       return array_filter([
+          new ExtensionValidation(...$args),
           $useNoFieldMissing                      ? new NoFieldsMissing(...$args) : null,
           $useFieldsExistsOnPostType              ? new FieldsExistsOnPostType(...$args) : null,
           $useFieldsExists                        ? new FieldsExists(...$args) : null,

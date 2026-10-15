@@ -79,6 +79,12 @@ class Get extends RestApiEndpoint
         $fieldData = $this->retrieveValues($fieldData);
         $fieldData = $this->translateFieldNamesToFieldKeys($params->postId, $fieldData);
         $fieldData = $this->filterUnmappedFieldKeysForPostType($params->moduleId, $fieldData);
+        $fieldData = $this->wpService->applyFilters(
+            'ModularityFrontendForm/readFormData',
+            $fieldData,
+            $params->postId,
+            $this->getModuleConfigInstance($params->moduleId)->getFieldKeysRegisteredAsFormFields() ?? []
+        );
 
         // Add standard WordPress fields after filtering ACF fields.
         $fieldData       = $this->prependPostFieldsToFieldData($fieldData, $params->postId, $params->moduleId);
@@ -130,16 +136,19 @@ class Get extends RestApiEndpoint
         }
 
         $value = $field['value'];
-        $streetAddress = $value['street_name'] . ' ' . ($value['street_number'] ?? '');
+        $streetAddress = ($value['street_name'] ?? '') . ' ' . ($value['street_number'] ?? '');
         $name = trim(implode(', ', array_filter([
             $streetAddress,
             ($value['post_code'] ?? '') . ' ' . ($value['city'] ?? ''),
             ($value['country'] ?? '')
         ])));
+        if (is_string($value['address'] ?? null) && trim($value['address']) !== '') {
+            $name = $value['address'];
+        }
 
         $postalAddress = Schema::postalAddress();
         $postalAddress->addressCountry($value['country'] ?? null);
-        $postalAddress->addressLocality($value['city'] ?? null);
+        $postalAddress->addressLocality($value['address_locality'] ?? $value['city'] ?? null);
         $postalAddress->streetAddress(!empty(trim($streetAddress)) ? $streetAddress : null);
         $postalAddress->postalCode($value['post_code'] ?? null);
         $postalAddress->addressRegion($value['state'] ?? null);

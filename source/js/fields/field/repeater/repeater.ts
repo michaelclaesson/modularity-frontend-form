@@ -12,7 +12,7 @@ class Repeater implements RepeaterInterface {
 		private conditionValidator: ConditionValidatorInterface,
 		private conditionsHandler: ConditionsHandlerInterface,
 		private validator: FieldValidatorInterface,
-		private loader: RepeaterValueLoaderInterface = new RepeaterValueLoader(),
+		private loader: RepeaterValueLoaderInterface = new RepeaterValueLoader(repeaterUI),
 	) {}
 
 	public init(conditionBuilder: ConditionBuilderInterface): void {

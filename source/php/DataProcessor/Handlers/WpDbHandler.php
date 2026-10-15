@@ -59,7 +59,7 @@ class WpDbHandler implements HandlerInterface {
       'fieldMeta' => $data
     ] = $this->pluckFromMetaData($data, ['post_title', 'post_content']);
 
-    if(in_array('post_id', $data) && $this->wpService->getPost($data['post_id']) !== null) {
+    if(str_ends_with($request->get_route(), '/submit/update') && isset($this->params->postId) && $this->wpService->getPost((int) $this->params->postId) !== null) {
       $this->updatePost(
         $this->moduleConfigInstance->getModuleId(),
         $data,
@@ -180,7 +180,7 @@ class WpDbHandler implements HandlerInterface {
     $moduleConfig = $this->moduleConfigInstance->getWpDbHandlerConfig();
 
     $result = $this->wpService->wpUpdatePost([
-        'ID'           => $fieldMeta['post_id'],
+        'ID'           => (int) $params->postId,
         'post_title'   => $postTitle   ?: $this->moduleConfigInstance->getModuleTitle(),
         'post_content' => $postContent ?: '',
         'post_status'  => $moduleConfig->saveToPostTypeStatus,
@@ -224,6 +224,7 @@ class WpDbHandler implements HandlerInterface {
     );
 
     $this->storeFields($fieldMeta, $result);
+    $this->wpService->doAction('ModularityFrontendForm/afterUpdatePost', $result);
 
     return true;
   }

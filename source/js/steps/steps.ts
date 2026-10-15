@@ -1,7 +1,9 @@
-import StepNavigator from "./stepNavigator";
-import StepUIManager from "./stepUIManager";
+import beforeProceed from '../validation/beforeProceed';
+import StepNavigator from './stepNavigator';
+import StepUIManager from './stepUIManager';
 
 class Steps implements StepsInterface {
+	private checking: boolean = false;
 	private editableSteps: { [key: number]: boolean } = {};
 
 	constructor(
@@ -11,7 +13,7 @@ class Steps implements StepsInterface {
 		private nextButton: HTMLButtonElement,
 		private previousButton: HTMLButtonElement,
 		private formId: number,
-	) { }
+	) {}
 
 	public init() {
 		this.editableSteps[this.stepNavigator.getActiveStepIndex()] = true;
@@ -25,7 +27,7 @@ class Steps implements StepsInterface {
 	private setupEdit() {
 		for (const step of Object.values(this.steps)) {
 			if (!step.getEditItem()) continue;
-			step.getEditItem()!.addEventListener("click", (e) => {
+			step.getEditItem()!.addEventListener('click', (e) => {
 				e.preventDefault();
 				if (step.getId() === this.stepNavigator.getActiveStepIndex()) return;
 				if (!this.editableSteps[step.getId()]) return;
@@ -41,9 +43,23 @@ class Steps implements StepsInterface {
 	}
 
 	private setupNext() {
-		this.nextButton.addEventListener("click", (e) => {
+		this.nextButton.addEventListener('click', async (e) => {
 			e.preventDefault();
+			if (this.checking) return;
 			const currentStep = this.stepNavigator.getActiveStep();
+			this.checking = true;
+			this.nextButton.disabled = true;
+			let proceed = false;
+			try {
+				proceed = await beforeProceed(
+					this.nextButton.closest('form') ?? this.nextButton.closest('[data-js-frontend-form]')!,
+					currentStep.getStepContainer(),
+				);
+			} finally {
+				this.checking = false;
+				this.nextButton.disabled = false;
+			}
+			if (!proceed || currentStep !== this.stepNavigator.getActiveStep()) return;
 			const stepIsValid = currentStep.validate();
 
 			this.stepUIManager.handleValidity(currentStep, stepIsValid, true);
@@ -62,7 +78,7 @@ class Steps implements StepsInterface {
 	}
 
 	private setupPrevious() {
-		this.previousButton.addEventListener("click", (e) => {
+		this.previousButton.addEventListener('click', (e) => {
 			e.preventDefault();
 
 			const currentStep = this.stepNavigator.getActiveStep();
@@ -76,14 +92,8 @@ class Steps implements StepsInterface {
 		});
 	}
 
-	private handleMove(
-		currentStep: StepInterface,
-		nextStep: StepInterface,
-	): void {
-		this.stepUIManager.updateButtonStates(
-			nextStep.getId(),
-			currentStep.getId(),
-		);
+	private handleMove(currentStep: StepInterface, nextStep: StepInterface): void {
+		this.stepUIManager.updateButtonStates(nextStep.getId(), currentStep.getId());
 
 		this.stepUIManager.showAndHideSteps(nextStep, currentStep);
 		this.updateUrlWithStep(nextStep.getId());

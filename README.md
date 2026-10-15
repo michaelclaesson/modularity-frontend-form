@@ -166,3 +166,18 @@ MIT
 ---
 
 For more details, see `.github/copilot-instructions.md` and the source code. All code, documentation, and contributions must follow workspace guidelines.
+
+
+## Linked location fields and extension validation
+
+Domain plugins can opt a taxonomy selector into shared-location behavior by setting `frontend_form_linked_location` on its ACF field. Configure `sourceField`, `nameField`, `addressField`, `attendanceField`, `termsUrl`, `matchesUrl`, and translated `strings` (see Event Manager's `PlaceFields`). Field references are ACF field keys. Source values are `existing`, `new`, or `legacy`; online attendance bypasses physical-location checks. Optional `frontend_form_option_label_meta` appends the address from the named term meta map to option labels. Unconfigured fields keep their existing behavior.
+
+The term endpoint returns `{id, name, place: {name, address, latitude, longitude}}`; the match endpoint returns an array of those records. The selected place populates the existing map and makes it read-only. A new name is checked after typing and before advancing or submitting. Failed checks require an explicit retry or bypass. All business rules and write authorization remain the domain plugin's responsibility.
+
+- PHP filter `ModularityFrontendForm/validateSubmission` receives `(true, data, WP_REST_Request, ModuleConfigInterface, ConfigInterface)` before storage or other handlers run. Return `true` or a `WP_Error`. Domain error messages/data are preserved under the standard `validation_error` response, with the original code in `data.reason`.
+- Filter `ModularityFrontendForm/readFormData` receives `(fieldData, postId, allowedFieldKeys)` so domain plugins can supply missing values for newly added fields when editing older records. Only add keys that belong to the configured form.
+- Action `ModularityFrontendForm/afterUpdatePost` runs after updated ACF fields are stored, matching the existing `afterInsertPost` boundary. Update requests retain the form-data namespace and use the authenticated route's post ID.
+- DOM event `modularity-frontend-form:beforeProceed` exposes `{scope, waitUntil(Promise<boolean>)}` for opt-in asynchronous checks before advancing and submitting. A false/rejected check blocks the action.
+- DOM event `modularity-frontend-form:populated` runs after an editing form has loaded its values and refreshed its field conditions.
+
+Verification uses `composer test`, `npm test`, `npx tsc --noEmit` and `npm run build`. The scoped OpenStreetMap package is hosted in GitHub Packages and may require the project's existing registry access. A local source build of the matching public Git tag can be used for development without changing the committed dependency declaration.

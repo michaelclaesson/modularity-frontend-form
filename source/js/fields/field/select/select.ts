@@ -14,6 +14,12 @@ class Select implements SelectInterface {
 	) {}
 
 	public init(conditionBuilder: ConditionBuilderInterface): void {
+		// Anchor the options to the control, excluding labels and validation notices.
+		const control = this.field.querySelector('.c-select__field-container');
+		const dropdown = this.field.querySelector('.c-select__dropdown');
+		if (control && dropdown) {
+			control.append(dropdown);
+		}
 		this.required = this.getField().required;
 		this.conditionsHandler.init(this, conditionBuilder);
 		this.conditionValidator.init(this);
@@ -47,7 +53,7 @@ class Select implements SelectInterface {
 	}
 
 	public getOptions(): NodeListOf<HTMLOptionElement> {
-		return this.options;
+		return this.select.querySelectorAll('option');
 	}
 
 	public hasValue(): boolean {
@@ -59,7 +65,9 @@ class Select implements SelectInterface {
 	}
 
 	public getSelectedOptions(): string[] {
-		return [...this.getOptions()].filter((option) => option.selected).map((option) => option.value);
+		return [...this.getOptions()]
+			.filter((option) => option.selected && option.value !== '')
+			.map((option) => option.value);
 	}
 
 	public getValueLoader(): SelectValueLoaderInterface {

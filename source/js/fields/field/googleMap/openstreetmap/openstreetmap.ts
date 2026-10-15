@@ -51,7 +51,9 @@ class Openstreetmap implements OpenstreetmapInterface {
 
 		this.createMarker = new CreateMarker();
 
-		const tiles = new TilesHelper().getDefaultTiles(this.modularityFrontendFormData.mapStyle ?? 'default');
+        const style = this.modularityFrontendFormData.mapStyle;
+        const mapStyle = style === 'dark' || style === 'pale' || style === 'color' ? style : 'default';
+        const tiles = new TilesHelper().getDefaultTiles(mapStyle);
 		new CreateAttribution().create().setPrefix(tiles.attribution).addTo(this.map);
 		new CreateTileLayer().create().setUrl(tiles.url).addTo(this.map);
 		this.search = new CreateSearch()

@@ -80,7 +80,7 @@ class Update extends RestApiEndpoint
         )->getValuesFromRequest($request);
 
         // Data to be submitted
-        $data = $request->get_params()[$this->config->getFieldNamespace()]   ?? null;
+        $data = [$this->config->getFieldNamespace() => $request->get_param($this->config->getFieldNamespace()) ?? []];
 
         // Creates the data processor
         $dataProcessor = new DataProcessor(

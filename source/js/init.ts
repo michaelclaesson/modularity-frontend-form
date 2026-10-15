@@ -1,3 +1,4 @@
+import LinkedLocation from './linkedLocation/linkedLocation';
 import Steps from './steps/steps';
 import StepUIManager from './steps/stepUIManager';
 import StepNavigator from './steps/stepNavigator';
@@ -59,6 +60,17 @@ class FormHandler {
 		this.setupFields(stepsObject, builder, conditionBuilder);
 		fieldsInitiatorInstance.initializeConditionals(builder.getFieldsObject());
 		this.removeLoader(stepsObject);
+		for (const field of Object.values(builder.getFieldsObject())) {
+			const config = field.getFieldContainer().getAttribute('data-js-linked-location');
+			if (config) {
+				new LinkedLocation(
+					this.formElement,
+					field as SelectInterface,
+					builder.getFieldsObject(),
+					JSON.parse(config),
+				).init();
+			}
+		}
 		this.setupFormPopulator(statusRenderer, builder.getFieldsObject());
 
 		//Add progressbar support
@@ -86,7 +98,12 @@ class FormHandler {
 		const fieldPopulator = new FieldsPopulator(fieldsObject);
 
 		formDataFetcher.subscribeToFetchedFormData((data: FetchedFormData) => {
-			return fieldPopulator.tryPopulateFields(data);
+			const populated = fieldPopulator.tryPopulateFields(data);
+			if (populated) {
+				for (const field of Object.values(fieldsObject)) field.getConditionsHandler().validate();
+				this.formElement.dispatchEvent(new CustomEvent('modularity-frontend-form:populated'));
+			}
+			return populated;
 		});
 
 		// Start fetching the form data

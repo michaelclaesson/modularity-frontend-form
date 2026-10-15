@@ -27,6 +27,10 @@ class TaxonomyFieldMapper implements FieldMapperInterface
             $this->getTermsFromTaxonomy($this->field)
         );
 
+        if (!empty($this->field['frontend_form_linked_location'])) {
+            $this->field['choices'] = ['' => ($this->field['placeholder'] ?? '')] + $this->field['choices'];
+        }
+
         $type   = $this->field['field_type'] ?? 'select';
         $mapper = $this->mapClasses[$type] ?? SelectFieldMapper::class;
 
@@ -48,7 +52,15 @@ class TaxonomyFieldMapper implements FieldMapperInterface
         $structured = [];
 
         foreach ($terms as $term) {
-            $structured[$term->term_id] = $term->name ?? $term->term_id;
+            $label = $term->name ?? $term->term_id;
+            if (!empty($this->field['frontend_form_option_label_meta'])) {
+                $meta = $this->wpService->getTermMeta($term->term_id, $this->field['frontend_form_option_label_meta'], true);
+                $address = is_array($meta) ? ($meta['address'] ?? '') : '';
+                if (is_string($address) && $address !== '') {
+                    $label .= ' – ' . $address;
+                }
+            }
+            $structured[$term->term_id] = $label;
         }
 
         return $structured;

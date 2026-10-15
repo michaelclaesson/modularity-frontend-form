@@ -80,6 +80,10 @@ class BasicFieldMapper implements BasicFieldMapperInterface
             'data-js-field-name' => $this->field['key']
         ];
 
+        if (!empty($this->field['frontend_form_linked_location'])) {
+            $attributeList['data-js-linked-location'] = json_encode($this->field['frontend_form_linked_location']);
+        }
+
         return $attributeList;
     }
 }
