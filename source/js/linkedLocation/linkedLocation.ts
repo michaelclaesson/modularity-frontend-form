@@ -168,7 +168,7 @@ export default class LinkedLocation {
 				address: { '@type': 'PostalAddress', name: term.place.address },
 			});
 			this.selectionValid = true;
-			this.summary.textContent = `${term.name} – ${term.place.address}`;
+			this.summary.textContent = '';
 		} catch {
 			if (revision !== this.selectionRevision) return;
 			this.summary.textContent = this.config.strings.loadFailed;
