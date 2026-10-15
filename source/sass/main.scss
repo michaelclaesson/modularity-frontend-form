@@ -76,3 +76,39 @@
     border-bottom-left-radius: inherit;
     border-bottom-right-radius: inherit;
 }
+
+.mod-frontend-form .c-select {
+    // The control has zero line-height; the options must use normal text layout.
+    .c-select__dropdown {
+        line-height: 1.5;
+    }
+
+    .c-select__option-label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .c-select__option-icon {
+        flex-shrink: 0;
+    }
+
+    // Validation belongs to the selected value, not the optional search input.
+    .c-select__search-field .c-field__inner {
+        &,
+        &:focus,
+        &:focus-within,
+        &:active {
+            border-color: var(--c-field--border-color);
+        }
+    }
+
+    .c-select__search-field .c-field__error-icon,
+    .c-select__search-field .c-field__success-icon {
+        display: none;
+    }
+
+    // Keep the focus outline on the search field while typing in the dropdown.
+    .c-select__field-container:has(.c-select__dropdown :focus) {
+        outline: none;
+    }
+}
