@@ -199,13 +199,25 @@ export default class LinkedLocation {
 			.catch(() => {
 				if (revision !== this.revision) return false;
 				this.notice.replaceChildren(document.createTextNode(this.config.strings.failed));
-				this.button(this.config.strings.retry, () => {
-					void this.checkName(true);
-				});
-				this.button(this.config.strings.skip, () => {
-					this.acceptedName = name;
-					this.notice.replaceChildren();
-				});
+				const actions = document.createElement('div');
+				actions.className = 'mod-frontend-form__location-actions';
+				this.notice.append(actions);
+				this.button(
+					this.config.strings.retry,
+					() => {
+						void this.checkName(true);
+					},
+					actions,
+					true,
+				);
+				this.button(
+					this.config.strings.skip,
+					() => {
+						this.acceptedName = name;
+						this.notice.replaceChildren();
+					},
+					actions,
+				);
 				return false;
 			})
 			.finally(() => {
@@ -238,12 +250,14 @@ export default class LinkedLocation {
 		});
 	}
 
-	private button(label: string, action: () => void): void {
+	private button(label: string, action: () => void, parent: HTMLElement = this.notice, primary = false): void {
 		const button = document.createElement('button');
 		button.type = 'button';
 		button.textContent = label;
-		button.className = 'c-button c-button__outlined c-button__outlined--primary c-button--sm';
+		button.className = primary
+			? 'c-button c-button__filled c-button__filled--primary c-button--sm'
+			: 'c-button c-button__outlined c-button__outlined--primary c-button--sm';
 		button.addEventListener('click', action);
-		this.notice.append(button);
+		parent.append(button);
 	}
 }
