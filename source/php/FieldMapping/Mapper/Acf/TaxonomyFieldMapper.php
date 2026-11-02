@@ -55,15 +55,26 @@ class TaxonomyFieldMapper implements FieldMapperInterface
             $label = $term->name ?? $term->term_id;
             if (!empty($this->field['frontend_form_option_label_meta'])) {
                 $meta = $this->wpService->getTermMeta($term->term_id, $this->field['frontend_form_option_label_meta'], true);
-                $address = is_array($meta) ? ($meta['address'] ?? '') : '';
-                if (is_string($address) && $address !== '') {
-                    $label .= ' – ' . $address;
+                $address = is_array($meta) ? $this->shortAddress($meta) : '';
+                if ($address !== '') {
+                    $label .= ' (' . $address . ')';
                 }
             }
             $structured[$term->term_id] = $label;
         }
 
         return $structured;
+    }
+
+    /** Street + number, postcode and city when stored; otherwise the full address. */
+    private function shortAddress(array $meta): string
+    {
+        $street = trim(($meta['street_name'] ?? '') . ' ' . ($meta['street_number'] ?? ''));
+        $city   = trim(($meta['post_code'] ?? '') . ' ' . ($meta['address_locality'] ?? $meta['city'] ?? ''));
+        if ($street !== '') {
+            return implode(', ', array_filter([$street, $city]));
+        }
+        return is_string($meta['address'] ?? null) ? $meta['address'] : '';
     }
 
     /**

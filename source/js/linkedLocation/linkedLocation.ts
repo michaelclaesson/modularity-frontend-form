@@ -13,7 +13,7 @@ type LinkedLocationConfig = {
 type RegisteredPlace = {
 	id: number;
 	name: string;
-	place: { name: string; address: string; latitude: number; longitude: number };
+	place: { name: string; address: string; shortAddress?: string; latitude: number; longitude: number };
 };
 
 /** Configured by the domain plugin through the selector's ACF settings. */
@@ -228,14 +228,25 @@ export default class LinkedLocation {
 	}
 
 	private showMatches(matches: RegisteredPlace[], name: string): void {
-		this.notice.replaceChildren(document.createTextNode(this.config.strings.duplicate));
+		const { strings } = this.config;
+		const intro = document.createElement('p');
+		intro.textContent = (matches.length === 1 ? strings.duplicate : strings.duplicatePlural) ?? strings.duplicate;
+		this.notice.replaceChildren(intro);
 		for (const match of matches) {
-			const text = document.createElement('p');
-			text.textContent = `${match.name} – ${match.place.address}`;
-			this.notice.append(text);
-			this.button(this.config.strings.use, () => {
+			const item = document.createElement('div');
+			item.className = 'mod-frontend-form__location-match';
+			const title = document.createElement('strong');
+			title.className = 'mod-frontend-form__location-match-name';
+			title.textContent = match.name;
+			const address = document.createElement('span');
+			address.className = 'mod-frontend-form__location-match-address';
+			address.textContent = match.place.shortAddress || match.place.address;
+			item.title = `${match.name} – ${match.place.address}`;
+			item.append(title, address);
+			this.notice.append(item);
+			this.button(strings.use, () => {
 				if (![...this.select.options].some((option) => option.value === String(match.id))) {
-					this.select.add(new Option(`${match.name} – ${match.place.address}`, String(match.id)));
+					this.select.add(new Option(`${match.name} (${match.place.shortAddress || match.place.address})`, String(match.id)));
 				}
 				this.source.getValueLoader().load('existing');
 				this.source.getConditionsHandler().checkConditions();
@@ -244,10 +255,18 @@ export default class LinkedLocation {
 				this.select.focus();
 			});
 		}
-		this.button(this.config.strings.continue, () => {
-			this.acceptedName = name;
-			this.notice.replaceChildren();
-		});
+		const actions = document.createElement('div');
+		actions.className = 'mod-frontend-form__location-actions';
+		this.notice.append(actions);
+		this.button(
+			strings.continue,
+			() => {
+				this.acceptedName = name;
+				this.notice.replaceChildren();
+			},
+			actions,
+			true,
+		);
 	}
 
 	private button(label: string, action: () => void, parent: HTMLElement = this.notice, primary = false): void {

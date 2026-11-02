@@ -59,6 +59,7 @@ describe('linked locations', () => {
 			matchesUrl: 'https://example.test/matches',
 			strings: {
 				duplicate: 'Duplicate',
+				duplicatePlural: 'Duplicates',
 				use: 'Use',
 				continue: 'Continue',
 				failed: 'Unavailable',
